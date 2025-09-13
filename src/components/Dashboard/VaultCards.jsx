@@ -1,45 +1,114 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { format } from 'date-fns'
 import { 
-  Lock, 
-  GraduationCap, 
-  Briefcase, 
-  FileText, 
   Package, 
   Calendar,
-  Tag,
   Trash2,
-  Edit
+  Eye,
+  EyeOff,
+  Copy,
+  Check
 } from 'lucide-react'
 
+// This is a new component to handle the logic for a SINGLE card
+const VaultCard = ({ card, onDelete }) => {
+  const [isContentVisible, setIsContentVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const isPassword = card.category === 'password';
+
+  const categoryStyles = {
+    password: { icon: '🔐', glow: 'from-green-500/50 to-emerald-500/50', border: 'border-green-500/30' },
+    exam: { icon: '📚', glow: 'from-blue-500/50 to-sky-500/50', border: 'border-blue-500/30' },
+    work: { icon: '💼', glow: 'from-purple-500/50 to-indigo-500/50', border: 'border-purple-500/30' },
+    notes: { icon: '📝', glow: 'from-yellow-500/50 to-amber-500/50', border: 'border-yellow-500/30' },
+    other: { icon: '📋', glow: 'from-slate-500/50 to-gray-500/50', border: 'border-slate-500/30' },
+  };
+
+  const { icon, glow, border } = categoryStyles[card.category] || categoryStyles.other;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(card.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  return (
+    <div className={`relative group bg-slate-50/80 backdrop-blur-lg rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden transform hover:-translate-y-1 ${border}`}>
+        {/* Category Glow Effect */}
+        <div className={`absolute -top-1/3 -right-1/4 w-1/2 h-1/2 bg-gradient-to-tr ${glow} rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
+
+        {/* Card Header */}
+        <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-4">
+                <span className="text-3xl">{icon}</span>
+                <div>
+                    <h3 className="font-bold text-slate-900 text-lg leading-tight">{card.title}</h3>
+                    <span className="text-xs font-medium text-slate-500 capitalize">{card.category}</span>
+                </div>
+            </div>
+            <button onClick={() => onDelete(card.id)} className="absolute top-4 right-4 text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0">
+                <Trash2 className="w-4 h-4" />
+            </button>
+        </div>
+      
+        {/* Main Content Area */}
+        <div className="mb-4 flex-grow min-h-[60px] flex flex-col justify-center">
+            {isPassword ? (
+                isContentVisible ? (
+                    <div className="flex items-center justify-between bg-slate-100 p-2 rounded-lg border border-slate-200 transition-all">
+                        <p className="text-slate-800 text-sm font-mono select-all break-all">{card.content}</p>
+                        <button onClick={handleCopy} className="p-2 text-slate-500 hover:text-blue-600 transition-colors flex-shrink-0">
+                            {copied ? <Check size={16} className="text-green-600"/> : <Copy size={16}/>}
+                        </button>
+                    </div>
+                ) : ( <p className="text-slate-400 text-3xl font-mono tracking-widest">••••••••</p> )
+            ) : (
+                <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{card.content && card.content.length > 100 ? card.content.substring(0, 100) + '...' : card.content}</p>
+            )}
+        </div>
+      
+        {/* Footer */}
+        <div className="mt-auto">
+            {card.tags && card.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {card.tags.map(tag => <span key={tag} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-200/70 text-slate-700">#{tag}</span>)}
+                </div>
+            )}
+            <div className="flex items-center justify-between text-sm text-slate-500">
+                {card.due_date ? (<div className="flex items-center"><Calendar className="w-4 h-4 mr-2" />{new Date(card.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>) : <div/>}
+                {isPassword && (
+                    <button onClick={() => setIsContentVisible(!isContentVisible)} className="flex items-center font-semibold text-blue-600 hover:text-blue-800">
+                        {isContentVisible ? <EyeOff size={16} className="mr-1"/> : <Eye size={16} className="mr-1"/>}
+                        {isContentVisible ? 'Hide' : 'Show'}
+                    </button>
+                )}
+            </div>
+        </div>
+    </div>
+  );
+};
+
+
+// This is your main component that renders all the cards
 const VaultCards = ({ cards, onDelete }) => {
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'password':
-        return '🔐'
-      case 'exam':
-        return '📚'
-      case 'work':
-        return '💼'
-      case 'notes':
-        return '📝'
-      default:
-        return '📋'
+      case 'password': return '🔐';
+      case 'exam': return '📚';
+      case 'work': return '💼';
+      case 'notes': return '📝';
+      default: return '📋';
     }
   }
 
   const getCategoryColor = (category) => {
     switch (category) {
-      case 'password':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'exam':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'work':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'notes':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'password': return 'bg-green-100 text-green-800 border-green-200';
+      case 'exam': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'work': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'notes': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   }
 
@@ -63,63 +132,17 @@ const VaultCards = ({ cards, onDelete }) => {
       </h2>
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
         {cards.map((card) => (
-          <div 
+          <VaultCard 
             key={card.id} 
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">{getCategoryIcon(card.category)}</span>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-lg">{card.title}</h3>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(card.category)}`}>
-                    {card.category}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => onDelete(card.id)}
-                  className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <p className={`text-slate-600 text-sm leading-relaxed ${card.category === 'password' ? 'font-mono' : ''}`}>
-                {card.content && card.content.length > 100 
-                  ? card.content.substring(0, 100) + '...' 
-                  : card.content
-                }
-              </p>
-            </div>
-            
-            {card.tags && card.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {card.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-            
-            {card.due_date && (
-              <div className="flex items-center text-sm text-slate-500">
-                <Calendar className="w-4 h-4 mr-2" />
-                {format(new Date(card.due_date), 'MMM dd, yyyy')}
-              </div>
-            )}
-          </div>
+            card={card} 
+            onDelete={onDelete}
+            getCategoryIcon={getCategoryIcon}
+            getCategoryColor={getCategoryColor}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-export default VaultCards
+export default VaultCards;
