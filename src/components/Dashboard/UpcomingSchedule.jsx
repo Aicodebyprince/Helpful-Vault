@@ -1,56 +1,35 @@
 import React from 'react'
-import { format, isToday, isTomorrow, isPast } from 'date-fns'
-import { Calendar } from 'lucide-react'
+import { format } from 'date-fns'
+import { Calendar, CheckSquare, Square } from 'lucide-react'
 
-const UpcomingSchedule = ({ cards }) => {
+const UpcomingSchedule = ({ cards, onToggleComplete }) => {
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'password':
-        return '🔐'
-      case 'exam':
-        return '📚'
-      case 'work':
-        return '💼'
-      case 'notes':
-        return '📝'
-      default:
-        return '📋'
+      case 'password': return '🔐';
+      case 'exam': return '📚';
+      case 'work': return '💼';
+      case 'notes': return '📝';
+      default: return '📋';
     }
   }
 
   const getCategoryColor = (category) => {
     switch (category) {
-      case 'password':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'exam':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'work':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'notes':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'password': return 'bg-green-100 text-green-800 border-green-200';
+      case 'exam': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'work': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'notes': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   }
 
   const formatDate = (dateString) => {
     if (!dateString) return ''
-    const date = new Date(dateString)
+    const date = new date(dateString)
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
-
-  const isUpcoming = (dateString) => {
-    if (!dateString) return false
-    const date = new Date(dateString)
-    const today = new Date()
-    return date >= today
-  }
-
-  // Filter and sort upcoming items
-  const upcomingItems = cards
-    .filter(card => card.due_date && isUpcoming(card.due_date))
-    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-    .slice(0, 5) // Show only next 5 items
+  
+  const upcomingItems = cards.slice(0, 5);
 
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 shadow-sm">
@@ -71,18 +50,38 @@ const UpcomingSchedule = ({ cards }) => {
           upcomingItems.map((item) => (
             <div
               key={item.id}
-              className="bg-white/50 rounded-xl p-4 border border-slate-200/50 hover:bg-white/80 transition-colors cursor-pointer"
+              className={`rounded-xl p-4 border transition-colors duration-300 flex items-center space-x-3 ${
+                item.is_completed
+                  ? 'bg-slate-100/60 border-slate-200/50 opacity-70'
+                  : 'bg-white/50 border-slate-200/50 hover:bg-white/80'
+              }`}
             >
-              <div className="flex items-center space-x-3">
-                <span className="text-lg">{getCategoryIcon(item.category)}</span>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-slate-900 text-sm truncate">{item.title}</h4>
-                  <p className="text-xs text-slate-500">{formatDate(item.due_date)}</p>
-                </div>
-                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryColor(item.category)}`}>
-                  {item.category}
-                </span>
+              <button
+                onClick={() => onToggleComplete(item.id, item.is_completed)}
+                className="p-1 text-slate-500 hover:text-purple-600 transition-colors"
+                aria-label={item.is_completed ? "Mark as not completed" : "Mark as completed"}
+              >
+                {item.is_completed ? (
+                  <CheckSquare className="w-5 h-5 text-purple-600" />
+                ) : (
+                  <Square className="w-5 h-5" />
+                )}
+              </button>
+
+              <span className="text-lg">{getCategoryIcon(item.category)}</span>
+              <div className="flex-1 min-w-0">
+                <h4 className={`font-medium text-slate-900 text-sm truncate ${
+                    item.is_completed ? 'line-through text-slate-500' : ''
+                }`}>
+                    {item.title}
+                </h4>
+                <p className={`text-xs text-slate-500 ${item.is_completed ? 'line-through' : ''}`}>
+                    {formatDate(item.due_date)}
+                </p>
               </div>
+              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getCategoryColor(item.category)}`}>
+                {item.category}
+              </span>
             </div>
           ))
         )}
@@ -92,3 +91,4 @@ const UpcomingSchedule = ({ cards }) => {
 }
 
 export default UpcomingSchedule
+
