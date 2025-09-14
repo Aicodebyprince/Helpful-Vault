@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Landing from './components/Landing/Landing'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
+import ForgotPassword from './components/Auth/ForgetPassword'
+import UpdatePassword from './components/Auth/UpdatePassword'
 import Dashboard from './components/Dashboard/Dashboard'
 import LoadingSpinner from './components/UI/LoadingSpinner'
 
@@ -29,11 +31,23 @@ function AppRoutes() {
         element={user ? <Navigate to="/dashboard" /> : <Register />} 
       />
       <Route 
+        path="/forgot-password" 
+        element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} 
+      />
+      <Route 
+        path="/update-password" 
+        element={<UpdatePassword />} 
+      />
+      <Route 
         path="/dashboard" 
         element={user ? <Dashboard /> : <Navigate to="/login" />} 
       />
+      <Route 
+        path="*"
+        element={<Navigate to={user ? "/dashboard" : "/"} />}
+      />
     </Routes>
-  )
+  );
 }
 
 function App() {

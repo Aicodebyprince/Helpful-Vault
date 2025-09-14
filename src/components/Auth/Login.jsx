@@ -1,35 +1,38 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import { Shield, Mail, Eye, EyeOff, Check } from 'lucide-react'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { Shield, Mail, Eye, EyeOff, Check } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const { signIn } = useAuth()
-  const navigate = useNavigate()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email, password);
     
     if (error) {
-      setError(error.message)
+      setError(error.message);
+      setLoading(false);
+    } else {
+      // On successful sign-in, navigate to the dashboard
+      navigate('/dashboard');
     }
-    
-    setLoading(false)
-  }
+    // No need to set loading to false here as navigation will unmount the component
+  };
 
   const goHome = () => {
-    navigate('/')
-  }
+    navigate('/');
+  };
 
   return (
     <div className="font-sans bg-gray-50 text-gray-900 antialiased min-h-screen">
@@ -101,19 +104,6 @@ const Login = () => {
                 <span className="text-primary-100">24/7 monitoring with 99.99% uptime guarantee</span>
               </div>
             </div>
-            
-            {/* Security Badges */}
-            <div className="mt-12 flex items-center space-x-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
-                <span className="text-sm font-medium">SOC 2</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
-                <span className="text-sm font-medium">GDPR</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
-                <span className="text-sm font-medium">HIPAA</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -142,13 +132,14 @@ const Login = () => {
                       id="email"
                       name="email"
                       type="email"
+                      autoComplete="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white"
                       placeholder="Enter your email"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                       <Mail className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
@@ -163,6 +154,7 @@ const Login = () => {
                       id="password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -173,6 +165,7 @@ const Login = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
                         <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600" />
@@ -197,9 +190,10 @@ const Login = () => {
                       Remember me
                     </label>
                   </div>
-                  <button type="button" className="text-sm text-primary-600 hover:text-primary-500 font-medium">
+                  {/* CORRECTED: This is now a proper Link */}
+                  <Link to="/forgot-password" className="text-sm text-primary-600 hover:text-primary-500 font-medium">
                     Forgot password?
-                  </button>
+                  </Link>
                 </div>
                 
                 <button
@@ -211,7 +205,6 @@ const Login = () => {
                 </button>
               </form>
               
-              {/* Register Link */}
               <div className="text-center">
                 <p className="text-gray-600">
                   Don't have an account?{' '}
@@ -237,15 +230,12 @@ const Login = () => {
               <Check className="w-4 h-4 mr-2 text-green-400" />
               <span>SOC 2 compliant</span>
             </div>
-            <div className="flex items-center">
-              <Check className="w-4 h-4 mr-2 text-green-400" />
-              <span>Zero-knowledge architecture</span>
-            </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
+
